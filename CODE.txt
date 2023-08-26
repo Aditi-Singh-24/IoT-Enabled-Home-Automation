@@ -1,0 +1,158 @@
+#include <Servo.h>
+const int pingPin = 2;
+const int echoPin = 3;
+const int TOUCH_SENSOR_PIN  = 7;
+
+int x=0;
+long distance;
+Servo myservo;
+int pos = 0;
+int State = LOW;
+int lastTouchState;
+int currentTouchState;
+
+int pass = 1;
+
+void setup() {
+  pinMode(13,OUTPUT);
+  pinMode(12,OUTPUT);
+  pinMode(11,OUTPUT);
+  pinMode(TOUCH_SENSOR_PIN, INPUT);
+  pinMode(pingPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  currentTouchState = digitalRead(TOUCH_SENSOR_PIN);
+  myservo.attach(9);
+  myservo.write(20);
+  Serial.begin(9600);
+}
+
+void loop() {
+  if (pass==1){
+    long duration;
+    pinMode(pingPin, OUTPUT);
+    digitalWrite(pingPin, LOW);
+    delayMicroseconds(2);
+    digitalWrite(pingPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(pingPin, LOW);
+    pinMode(echoPin, INPUT);
+    duration = pulseIn(echoPin, HIGH);
+    distance=duration*0.017;
+    //Serial.println(distance);
+
+    delay(100);
+    lastTouchState    = currentTouchState;
+    currentTouchState = digitalRead(TOUCH_SENSOR_PIN);
+    if(lastTouchState == LOW && currentTouchState == HIGH) {
+      State = !State; 
+    }
+
+    if (State == HIGH){
+      for (pos = 20; pos <= 120; pos += 1) {
+        if (x==1){
+          myservo.write(pos);              // tell servo to go to position in variable 'pos'
+          delay(15); 
+        }
+      }
+      x=0;
+    }
+    else{
+      for (pos = 120; pos >= 10; pos -= 1) {
+        if (x==0){
+          myservo.write(pos);              // tell servo to go to position in variable 'pos'
+          delay(15); 
+        }
+      }
+      x=1;
+    }
+    if(distance<=5){
+      digitalWrite(11,HIGH);
+      digitalWrite(12,LOW);
+      digitalWrite(13, LOW);
+    }
+    else if (distance<=10){
+      digitalWrite(11,LOW);
+      digitalWrite(13, LOW);
+      digitalWrite(12, HIGH);
+    }
+    else if (distance<=20){
+      digitalWrite(11,LOW);
+      digitalWrite(13, HIGH);
+      digitalWrite(12,LOW);
+    }
+    else{
+      digitalWrite(11,LOW);
+      digitalWrite(12,LOW);
+      digitalWrite(13,LOW);
+    }
+  
+  }
+  else{
+    tone(10,500);
+    delay(500);
+    noTone(10);
+    delay(500);
+    tone(10,500);
+    delay(500);
+    noTone(10);
+    delay(500);
+    tone(10,500);
+    delay(500);
+    noTone(10);
+    long duration;
+    pinMode(pingPin, OUTPUT);
+    digitalWrite(pingPin, HIGH);
+    delayMicroseconds(2);
+    digitalWrite(pingPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(pingPin, HIGH);
+    pinMode(echoPin, INPUT);
+    duration = pulseIn(echoPin, HIGH);
+    distance=duration*0.017;
+    //Serial.println(distance);
+    delay(100);
+  }
+  
+  if( State == HIGH ){
+    // Graphical representation
+      float a = float(distance)*5; 
+      if(distance < 20){   
+       Serial.print("\nHurray! Welcome you are ");
+       Serial.print(distance);
+       Serial.print("cm near to the wall and accessed ");
+       Serial.print(100-(distance*5));
+       Serial.print("% of the room.\n");
+      for (int i = 0; i < 100-(distance*5); i++) {
+        Serial.print(">");      
+      }
+      if(distance < 5){
+        Serial.print("\nHurray! You reached the end of the room\n");
+     }
+      Serial.print("\n");
+    }
+    delay(100); // Wait for a moment before taking another measurement
+   
+  }
+  else{
+    // Graphical representation
+    float a = float(distance)*5;
+    if(distance < 20 ){
+      //Serial.print("\n");
+       Serial.print("\n\nAlert! The Intruder is ");
+       Serial.print(distance);
+       Serial.print("cm near to the wall and accessed ");
+       Serial.print(100-(distance*5));
+       Serial.print("% of the room.\n");
+      for (int i = 0; i < 100-(distance*5); i++) {
+        Serial.print(">");      
+      }
+       Serial.print("\n");
+      if(distance < 5){
+        Serial.print("\nHe has accessed the complete House");
+     }
+    delay(100); // Wait for a moment before taking another measurement
+   }
+  }
+}
+
+
